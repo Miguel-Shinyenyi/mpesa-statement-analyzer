@@ -1,0 +1,48 @@
+UMWAYI-OS VIDEO PACK, FILE 0 OF 4
+START HERE
+
+Written 2026-11-13.
+
+WHICH MUSE MODEL
+Muse Video, from Meta Superintelligence Labs. Muse Image makes stills and Muse Spark is the text model, so Muse Video is the one for this job.
+
+WHAT I COULD CONFIRM AND WHAT I COULD NOT
+Confirmed by Meta's own post of July 7, 2026: Muse Video is an early preview, "coming soon to creators and Meta AI". It makes sound in the same pass as the picture. Meta names two weak spots: audio and picture sync, and fast physical motion.
+Reported by third parties, not by Meta: clips of about 10 seconds, text to video and image to video, a choice of 9:16 or 16:9 before you generate, and characters that drift between clips.
+Not published anywhere I found: resolution, price, whether you can give it your own audio or a voice sample, and whether it takes a reference image.
+Not known to me: whether you have access today. A third party said on September 22 that there was no public access and no API. I could not find a later confirmation. Check your Meta AI app or meta.ai before you plan around it.
+
+WHAT THAT MEANS FOR YOUR VOICE
+I do not expect Muse Video to use a voice sample. So the plan is: Muse makes ambience only, you record the lines, and an editor joins them. File 3 has the lines and also a voice sample to record, in case you want a separate voice tool.
+
+IF MUSE VIDEO IS NOT AVAILABLE TO YOU
+The prompts are written as plain scene descriptions with a fixed style, so they also work in other text to video tools. The stills in the stills folder can be the first frames if the tool takes an image. The SOUND tag can be dropped if the tool makes no sound. I have not tested the prompts in any tool, so expect to adjust them.
+
+WHAT IS IN THE PACK
+00-start-here.txt                      this file
+01-visual-bible-and-ui.txt             the style tags, the eleven stations, how the UI looks today and what is only planned
+02-video-prompts.txt                   eleven videos, shot by shot, with the article each one draws on
+03-voice-script.txt                    the voice sample to record, and the lines for every shot
+04-ready-to-paste-prompts.txt          the 35 Muse prompts with the tags already written in
+stills/                                screenshots of the real UI from main, taken today
+
+THE ELEVEN VIDEOS
+V1 the story, V2 fail closed, V3 the logbook, V4 the budget, V5 one task one folder, V6 one gate three tools, V7 how it is built, V8 trust you can take back, V9 work while you are away, V10 the 30 second teaser, V11 the UI tour.
+They follow the articles on the site: the rules gate, the logbook, the budget governor, the worktree, the generated docs parts, the adapters, the CI article and the chimera article, the corrections and autonomy article, the guidance library, and the schedule and server article.
+
+WHAT TO RECORD YOURSELF
+Every shot marked REAL is a screenshot or a screen recording, because Muse draws text badly. File 1 lists the recordings and the exact commands. Retake the progress page on filming day, since its numbers change with every merge.
+
+RULES I KEPT
+No claim that goal runs work, no claim of a real run on Claude Code, Kiro or OpenCode, and no claim that the scene follows real data. Anything planned is marked planned in file 1.
+
+SOURCES FOR THE MUSE FACTS
+Meta, Introducing Muse Image and Muse Video: https://ai.meta.com/blog/introducing-muse-image-muse-video-msl/
+Muse Video release status, third party: https://www.orcarouter.ai/blog/muse-video-release-date-api-leak
+Muse Video how to, third party: https://www.getmusehelp.com/make-videos-with-muse/
+Muse Video summary, third party: https://pexo.ai/blog/what-is-muse-video-7286
+
+ADDED 2026-11-13 (evening)
+- 05-terminal-walkthrough.txt: the narrated terminal walkthrough of the whole system, scene by scene, with the real output.
+- 06-record-the-terminal.txt: how to record the real terminal and the scenario tests.
+- demo.sh, demo-tests.sh, demo.tape: the scripts to run and record. Run them from the umwayi-os repo root.

@@ -1,0 +1,169 @@
+UMWAYI-OS VIDEO PACK: FEEDBACK FROM RUNNING THE TERMINAL WALKTHROUGH
+Run on 2026-11-14 (Africa/Nairobi) by Claude Code on Miguel's Mac. Facts only. Where I did not find a cause, I say so.
+
+WHAT I RAN
+- Repo: a fresh HTTPS clone of Miguel-Shinyenyi/umwayi-os at ~/workspace/umwayi-os. Main at 7da3e67 (PR 102). The pack was written at PR 96, so six pull requests came after it.
+- Scripts: demo.sh and demo-tests.sh from this pack, unchanged, run from the repo root. Nothing was copied into the repo. The repo stayed clean (git status empty).
+- Python: 3.13.2 from Homebrew. This Mac has python3 but no python command. I made a "python" link in a scratch folder and put it on PATH for the run. Without it every step fails with "python: command not found" (exit 127).
+
+RESULT 1: demo.sh (scenes 1 to 7) RAN CORRECTLY
+Every command ran for real and every exit code matched what file 05 says.
+- umwayi --version: umwayi 0.1.0, exit 0.
+- check read_memory: Yes, rule read-memory, exit 0.
+- check git_push main: No, rule no-push-main, exit 2.
+- check deploy prod: Ask me first, no rule, exit 3.
+- queue add: Added Q-0001. queue list shows it with the recommendation.
+- logbook verify: ok, 5 entries, chain not started. After seal --chain: ok, 6 entries, chain intact, 1 chained entry.
+- kill on, kill status (prints "on", exit 3), kill off.
+- budget status: 500 UU a day, 100 UU reserved per start. It also says there is no units.yaml, so every reading is unknown.
+- goal --help and agent --help print.
+
+Differences from file 05 to fix before you record the voice:
+- goal --help now lists docs and guard as well as start, show, approve, run, status, answer, merged, stop and report. File 05 scene 7 lists nine. There are eleven.
+- The logbook has 5 entries before the seal in a fresh scratch root. Say "5 earlier entries" if you read the number aloud.
+- The budget screen says "unknown" and "placeholders". Do not say the budget numbers are measured.
+- kill status exits 3 while the switch is on. The script prints [exit 3]. That is correct, but do not read it as an error.
+
+RESULT 2: demo-tests.sh (scene 8) DID NOT PASS
+File 05 says: 41 OK, 209 OK, 30 OK. I got:
+- tests.goal.test_cli: Ran 41 tests in 20 s. FAILED (failures=1, errors=1).
+- tests.goal.test_goalrun: Ran 209 tests in 228 s. FAILED (errors=6).
+- tests.test_whole_system: Ran 30 tests in 1.7 s. FAILED (failures=2, skipped=25).
+246 lines ended in ok across the three runs.
+
+Failing tests by name:
+test_cli
+- ApproveTests.test_wait_hours_sets_the_deadline_of_a_task_that_needs_the_owner: ERROR. goalstate.change_state raised RecordFailed ("umwayi could not write its record, so it stopped", exit 2).
+- StopTests.test_stop_reaches_a_running_supervisor_within_its_watch: FAIL. The task was still ('running', 'start'). The test expected ('stopped', 'owner'). I did not find the cause.
+test_goalrun
+- FailedWriteTests.test_after_the_next_command_the_task_state_equals_the_logbook: ERROR, RecordFailed.
+- KillTests.test_nothing_starts_while_the_switch_is_on_and_nothing_restarts_after_it_is_off: ERROR. The message says the logbook could not record turning the switch off, because "the date 2026-11-13 is before the date of the last entry (2026-11-14). Dates never go backwards."
+- LeftoverTests.test_a_crash_after_the_worktree_and_before_the_builder_is_cleaned_by_the_next_command: ERROR, RecordFailed.
+- StartRefusalTests.test_a_missing_or_broken_rules_file_is_ask_me_first: ERROR in two sub-cases (broken rules text, rules with no body).
+- StartRefusalTests.test_the_tester_and_the_guide_must_not_be_the_builder: ERROR in the case tester=kiro-test, guide=claude-build.
+test_whole_system
+- WholeSystemTests.test_01_a_fresh_root_validates: FAIL. umwayi schedule validate returned 64 with this problem: "the path of the Python running umwayi has a character a unit file cannot hold safely (allowed: letters, digits, / . _ + -)". My Python path was /opt/homebrew/opt/python@3.13/bin/python3.13. The @ is not allowed.
+- Because step 1 failed, 25 later steps were skipped ("day step 1 failed, so this step cannot run").
+- SupportTests.test_the_end_checks_see_a_leftover_process: FAIL. Expected [] and got [81464]. I did not find the cause.
+
+CAUSES I CONFIRMED FROM THE OUTPUT
+1. Homebrew Python path. Any Python under /opt/homebrew/.../python@3.13 has an @ in its path. The schedule validate check rejects it. This stopped the whole-system scenario test and skipped 25 steps. It will also affect Miguel on this Mac if he uses the schedule commands with Homebrew Python.
+2. A clock mismatch. Some tests use a fixed date, 2026-11-13, while the logbook checks against the real date, which became 2026-11-14 at midnight. The logbook refuses a date that goes backwards. This looks like a time-dependent test fault. It explains the KillTests error. It probably explains the RecordFailed errors, but I did not prove that for each one.
+
+CAUSES I DID NOT FIND
+- The StopTests failure, the LeftoverTests error, the two StartRefusalTests errors and the leftover-process failure. They may come from cause 1, cause 2, a slow machine, or something else. I did not rerun after changing the Python or the date.
+
+WHAT I DID NOT DO
+- I did not rerun with a Python path that has no @.
+- I did not rerun with the clock set back to 2026-11-13.
+- I did not change any umwayi-os file.
+- I did not run the mutation pass (W9.10). I did not check whether it merged.
+- I did not verify the Muse Video facts in file 00 or read files 01 to 04 closely.
+
+WHAT TO DO BEFORE YOU RECORD SCENE 8
+- Do not record the tests as passing. The video must show what really happened.
+- Rerun with a Python whose path has no @, for example a venv made with python3 -m venv --copies, or the python.org build. Run on one calendar day, so the clock does not roll over during the run.
+- Put both faults on the umwayi-os checklist: the @ in the Python path (a Homebrew Python is a normal install) and the fixed test dates.
+- After the fix, replace the counts in file 05 scene 8 with the new real counts.
+- Each test run takes about 4.5 minutes at full speed on this Mac, so file 06's "about 2.5 minutes" is too low. The goal supervisor file alone took 228 s.
+
+HOW TO WATCH IT YOURSELF
+- In your own terminal, from the umwayi-os repo root:
+    cd ~/workspace/umwayi-os
+    PATH="<folder with a python link>:$PATH" bash <pack folder>/demo.sh
+  Or: alias python=python3 first, then bash demo.sh.
+- Inside a Claude Code session, type ! then the command. The output then lands in the conversation as it prints.
+- The recordings I made are in the recordings folder of this pack:
+    recordings/umwayi-demo.mp4 and .gif: the walkthrough, real terminal.
+    recordings/umwayi-tests.mp4 and .gif (3 min 48 s), plus umwayi-tests.cast: the scenario tests, with the failures. The .cast is the text recording. Play it with: asciinema play recordings/umwayi-tests.cast
+  Open the mp4 in QuickTime.
+
+THE TESTS RECORDING (asciinema, second method)
+- VHS failed twice on the tests. Both times the screen stopped after test_approve_calls_the_guard_after_the_terminal_check and VHS gave up. I did not find the cause. I checked that the tests do not hang in a real terminal: tests.goal.test_cli ran in 21 s in a pseudo-terminal.
+- asciinema 3.2.1 (headless, 110 by 32) recorded the full run: umwayi-tests.cast. agg made the GIF with idle gaps capped at 3 s, and ffmpeg made the mp4 from the GIF. The mp4 is 3 min 48 s and 24 MB. The GIF is 31 MB.
+- It shows the same results as my first run: 41 tests with 1 failure and 1 error (24 s), 209 tests with 6 errors (235 s), 30 tests with 2 failures and 25 skipped (1.6 s). I checked the last frame of the mp4.
+- The test output is plain text and shows tracebacks with the full path ~/workspace/umwayi-os/... on screen. File 06 says no real path may show before you publish. Do not publish this recording as is. Crop it, blur it, or record again from a folder with a neutral path.
+- The video shows failures. Do not put it in the video as passing. Record again after the Python path and date faults are fixed.
+
+HOW I RECORDED
+- VHS 0.12.1 (brew install vhs, which also brought ttyd). 1600 by 900, font size 22, Catppuccin Mocha.
+- The setup (PATH, prompt, folder) ran hidden, so no path shows on screen. The prompt is "$ ".
+- The walkthrough was recorded with VHS: recordings/umwayi-demo.mp4 (88 s) and .gif. The tests were recorded with asciinema. The tapes are not in the pack. Say if you want them added.
+
+REAL AGENT RUN, CLAUDE CODE (2026-11-15)
+What I did, in a scratch root and a scratch working folder, never in a repo:
+- umwayi agent validate: ok, 1 agent. umwayi agent list: ok. umwayi agent check claude-test: Gated. Claude Code 2.1.322 found, login "Claude subscription (plan: pro)", the hook started and blocked its self-test event. exit 0.
+- Kill switch on, then umwayi agent run: "Ask me first ... The kill switch is on ... Agent claude-test was not started." The gate stopped the start.
+- Kill switch off, no Yes rule for the budget check: exit 3, "Agent claude-test was not started", queue item Q-0001. I had added a Yes rule for agent_run only. The run also needs a Yes rule for budget_check. Answering the queue item does not start the agent.
+- With both Yes rules, umwayi agent run claude-test --cap-uu 20 --prompt "Reply with the single word hello." ran a real Claude Code session. It printed: hello.
+- Then umwayi stopped it: "Agent claude-test was stopped: its telemetry report was not valid (a count was not an integer from 0 to 10^12), so its run is settled at the full reservation (exit 2)." Budget: settled, unknown, 20 UU.
+- The logbook line for the settle says: tokens input 2, output 4, cache_read 9012, cache_creation 10109, requests 1, model claude-sonnet-5-5, reports accepted 1, refused 1 (1 answered 400).
+
+What this means:
+- The gate works on a real Claude Code: the kill switch and the missing rules stopped the start, and the Yes rules let it through.
+- A real, successful run ended with exit 2 and was billed at the full 20 UU reservation, because one of the two cost reports Claude Code sent was refused by umwayi/telemetry.py.
+- The refusing code is in umwayi/telemetry.py (lines 92, 145 and 200 raise that message). I did not capture the refused report, so I do not know which field failed. A guess, not checked: the report may send a count in a form the receiver rejects, such as a number as text. Treat that as a guess.
+- This is the first real run in this pack. File 05 says "tested with fakes, real runs are on my checklist". Keep that caption. Do not film this run as a clean success: the agent worked and umwayi reported a failure.
+
+TELEMETRY FAULT, TRACED (2026-11-15)
+Cause, confirmed: Claude Code 2.1.322 sends the metric claude_code.token.usage with each count under the key asDouble (a whole number). umwayi/telemetry.py, in fold_metrics, requires the key asInt for every metric except cost.usage, and raises "a count was not an integer from 0 to 10^12" when asInt is missing (line 200). So the receiver refuses the metrics report, marks the run invalid, stops it with exit 2, and settles the full reservation.
+How I traced it:
+- I wrote a small local receiver in my scratchpad (shape_recv.py, not in the pack). It logs only key names and value types, never values or content.
+- I ran claude -p once with the same OTEL settings umwayi sets (the code is telemetry_env in umwayi/telemetry.py), pointed at that receiver.
+- The metrics report: claude_code.cost.usage has asDouble (a float). claude_code.token.usage has asDouble too, with a whole number. umwayi accepts asDouble only for cost.
+- The log report (the api_request event) sends cost_usd_micros and the four token counts as intValue. umwayi accepts those. That is why the settle line showed tokens (input 2, output 4, cache read 9012, cache creation 10109) and still said 1 report refused.
+Why the fakes passed: the tests send asInt. A real Claude Code 2.1.322 does not. I did not check older versions.
+What I did not do: I did not change umwayi-os. A fix would accept asDouble for the token metric when the number is a whole number from 0 to 10^12, as it already does for cost. That is a design choice for you (it loosens an input check on the budget path), so I left it.
+An aside: a shell with ANTHROPIC_API_KEY set made my direct run fail with "Invalid API key". umwayi strips credential variables itself, so its own run was not affected.
+
+DOWNLOADS (2026-11-15)
+- brew install opencode: opencode v2.3.0 (needs 2.2.3 or newer).
+- brew install kiro-cli (cask): kiro-cli 3.3.0 (needs 2.27.1 or newer).
+- Both from Homebrew. I did not sign in to either.
+
+OPENCODE, REAL CHAT (free route opencode/big-pickle, no sign-in)
+- agent check oc-free: Gated. Version 2.3.0, no managed or other OpenCode config that could widen the gate, route allowed.
+- agent chat with one message through the gate: "Connected", the plugin was confirmed in the session, it replied "hello", exit 0 after 3 to 9 s. Budget settled "unknown 100 UU" (no cost report, so the safe side).
+- With the kill switch on, the chat did not start (exit 3).
+- OpenCode told me it cannot close the session itself. Use :quit in umwayi's chat, not /exit.
+
+KIRO, REAL RUN (2026-11-15)
+- Sign in: kiro-cli login --social google. It opened the browser, you signed in, kiro-cli whoami then said "Logged in with Google". I did not touch the sign-in page and I do not record the account in this file.
+- agent check kiro-test: Gated. kiro-cli 3.3.0, signed in, hook self-test blocked its event, hook file found. Run would start: kiro-cli chat --v3 --no-interactive --trust-tools=read_file, prompt on stdin.
+- First run, --cap-uu 20: refused, exit 3. "the cap of 20 UU is below the 100 UU that umwayi counts for a kiro run (unknown), and umwayi cannot watch its cost while it runs". That is the budget gate working. It is not a fault.
+- Run with --cap-uu 100: Kiro printed "hello", exit 0 after 12 to 15 s. Budget settled "unknown 100 UU" (no cost report from Kiro).
+- With the kill switch on, the run did not start (exit 3).
+- One thing to know: Kiro's own log line "[INFO] [KRS] <-- GenerateAssistantResponseCommand done totalEvents=6" is printed right after "hello" on the same line. That is Kiro's output, not umwayi's. Crop or hide it in the final video if you want a clean line.
+- Hook file path, a trap: umwayi compares the command in the hook file with the resolved root path. On macOS mktemp gives /var/..., which is a link to /private/var/.... My first recording used /var/... and umwayi said "no PreToolUse hook for every tool runs exactly ..." (not gated). demo-agent-kiro.sh now resolves the root with pwd -P. If you write the hook file by hand, use the resolved path.
+
+VIDEOS OF EACH AGENT TEST (recordings folder)
+- umwayi-agent-claude.mp4 / .gif / .cast (41 s): validate, check, kill switch on (not started, exit 3), kill off, real run, "hello", then the telemetry stop (exit 2), budget status, logbook verify. It shows a real success followed by umwayi's failure report. Do not film it as clean.
+- umwayi-agent-opencode.mp4 / .gif / .cast (40 s): validate, check, kill switch on (not started, exit 3), kill off, a real chat, "hello", exit 0, budget status, logbook verify.
+- umwayi-agent-kiro.mp4 / .gif / .cast (53 s): validate, check (gated), kill switch on (not started, exit 3), kill off, a 20 UU cap refused (exit 3), then a real run at 100 UU, "hello", exit 0, budget status, logbook verify.
+- Scripts: demo-agent-claude.sh, demo-agent-opencode.sh, demo-agent-kiro.sh and demo-agent-common.sh, all in the pack. Run them from the umwayi-os repo root. Each builds a scratch root and a scratch working folder, writes its own Yes rules there, and deletes nothing.
+- No username shows on screen. I recorded from a neutral copy of the repo at /private/tmp/umwayi-os-demo and put claude on a neutral path. The scratch folder names are random.
+
+CHECKLIST ITEMS FOR UMWAYI-OS (from this run, 2026-11-15)
+Item 1: Claude Code cost report is refused, so a good run ends as a failure.
+- Where: umwayi/telemetry.py, Totals.fold_metrics, the line that raises "a count was not an integer from 0 to 10^12" when "asInt" is not in the data point (line 200 on main 7da3e67).
+- What happens: Claude Code 2.1.322 sends claude_code.token.usage counts as "asDouble" with a whole number. umwayi accepts asDouble only for claude_code.cost.usage. So the run is marked invalid, stops with exit 2, and the full reservation is settled as "unknown".
+- Proof: the logbook settle line of the real run (tokens input 2, output 4, cache read 9012, cache creation 10109, "reports accepted 1, refused 1") and the shape capture. Both are in this file. The video umwayi-agent-claude.mp4 shows it.
+- Proposed fix, for the owner to decide: in the token branch, accept "asDouble" when the value is a whole number from 0 to 10^12 (for example a float with no fraction), and keep refusing a fraction, a negative number, text, a bool and anything over 10^12. Keep "asInt" accepted as before.
+- Why it needs a decision: it loosens one input check on the budget path. The rule "anything else marks the run invalid" is a deliberate safety stance, so the owner should agree to the new rule before it is built.
+- Tests to add: a token data point with asDouble 9012.0 is counted as 9012. asDouble 1.5, -1, "9012", true and 1e13 are each refused and mark the run invalid. A data point with neither key is still refused. The existing asInt tests stay.
+- A real check to add after the fix: run umwayi agent run on a real Claude Code once and expect exit 0 and a settled "measured" cost, not "unknown". Check the 2.1.322 version in the note, and try one older version if you have it.
+- Not known: whether older Claude Code versions send asInt. The fakes in the tests do.
+- Owner decision needed: yes (the loosened check).
+
+Item 2 (smaller): the hook file path for Kiro must be the resolved path.
+- On macOS a temp folder under /var is really /private/var. umwayi compares the hook command with the resolved root path, so a hand written hook file with /var/... fails the check with a long message. The message could name the resolved path it expected, or the setup docs could say "use the resolved path (pwd -P)". Docs only, no owner decision needed.
+
+Item 3 (smaller): the Homebrew Python path and the fixed test dates, from the test run above.
+- The @ in a path like /opt/homebrew/opt/python@3.13/bin/python3.13 is refused by schedule validate. The scenario test test_01 fails and skips 25 steps.
+- Some tests use the fixed date 2026-11-13 while the logbook uses the real date, so they fail after midnight.
+- Owner decision needed for the first (it is a rule about unit file paths). The second is a test fix.
+
+ABOUT THE OPENCODE SIGN IN
+- No sign in was done for OpenCode, and none was needed. The free route opencode/big-pickle works signed out. umwayi gives OpenCode no provider key.
+- opencode auth list shows one entry: the name ANTHROPIC_API_KEY, read from the environment of my shell. There are no stored logins. I did not print or use the value. umwayi does not pass that variable to OpenCode.
+- A route that needs a sign in (openai or github-copilot) was not tried. That would need opencode auth login by you, and a model your install lists.

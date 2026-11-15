@@ -1,0 +1,119 @@
+UMWAYI-OS: THE TERMINAL WALKTHROUGH
+Script for a 4 minute 30 second video. Narration, what is on screen, and the real output.
+
+HOW TO USE THIS FILE
+- The terminal parts are best recorded for real, not generated. A video model draws text badly, and a command with one wrong letter looks fake. File 06 shows how to record the real terminal in one command. The commands in this file ran on umwayi-os main (after PR 96) and the output below is what they printed.
+- Muse Video is the right tool for the short scene cards between terminal parts (the shepherd, the gate, the highlands). Paste the prompts marked MUSE. They use the STYLE, SHEPHERD and SOUND tags from file 04.
+- Put your voice over everything in your editor. The VOICE lines are written to be read aloud, short, one idea each.
+
+LENGTH AND PACE
+- Total 4:30. Eight scenes. Each terminal scene is 20 to 35 seconds. Each card is 6 to 10 seconds.
+- Type slowly. Leave 3 seconds after each output so the viewer can read it.
+
+------------------------------------------------------------
+SCENE 0. COLD OPEN (0:00 to 0:15)
+MUSE (10 s clip): STYLE. The Kenyan highlands at dusk, a lone shepherd with a staff stands by a stone gate, sheep wait behind it. The lamp on the gate post is amber.
+SCREEN TEXT: umwayi-os. An AI operating system for one person.
+VOICE: "You hand work to AI helpers. They are fast, and they do not stop to ask. umwayi-os puts your rules in front of every one of them."
+
+SCENE 1. THE GATE: YES, NO, ASK ME FIRST (0:15 to 0:55)
+SCREEN: terminal.
+  $ umwayi --version
+  umwayi 0.1.0
+  $ umwayi check '{"type":"read_memory"}'
+  Yes
+  Rule: read-memory
+  Reason: Reading the memory folder through the loader is allowed.
+  [exit 0]
+  $ umwayi check '{"type":"git_push","branch":"main"}'
+  No
+  Rule: no-push-main
+  Reason: Nothing is pushed to the main branch. Cause: Work happens on feature branches with pull requests.
+  [exit 2]
+  $ umwayi check '{"type":"deploy","target":"prod"}'
+  Ask me first
+  Rule: (none)
+  Reason: No rule matches this action.
+  [exit 3]
+VOICE: "Every action gets one of three answers. Yes. No. Or Ask me first. Reading memory is allowed. Pushing to main is refused. A deploy has no rule, so it asks me. If a rule is missing, the answer is never yes. And a crash counts as no."
+ON SCREEN CAPTION: Exit 0 yes, 2 no, 3 ask me first. Never 1.
+
+SCENE 2. ASK ME FIRST BECOMES A QUESTION (0:55 to 1:25)
+SCREEN:
+  $ umwayi queue add --kind decision --recommendation 'No, deploy from a branch' 'Deploy to prod?'
+  Added Q-0001 (decision): Deploy to prod?
+  $ umwayi queue list
+  Q-0001  decision  open  -  Deploy to prod?  [recommendation: No, deploy from a branch]
+VOICE: "A question I need to answer lands in a queue. Every question carries a recommendation. The helper waits. It does not guess."
+
+SCENE 3. THE LOGBOOK YOU CAN VERIFY (1:25 to 1:55)
+SCREEN:
+  $ umwayi logbook verify
+  ok: 5 entries, the format is valid and the hash matches the record
+  $ umwayi logbook seal --chain --by miguel
+  Sealed LOGBOOK.md: 5 earlier entries, hash recorded.
+  $ umwayi logbook verify
+  ok: 6 entries, the format is valid and the hash matches the record
+  info: the hash chain is intact: 1 chained entries
+VOICE: "Every change is one line in a logbook that is only ever added to. Each line is chained to the one before. Edit an old line and verify tells you."
+MUSE (8 s card, optional): STYLE. A tall standing stone at dusk with a glowing bead helix wound around it, one bead lit.
+
+SCENE 4. THE KILL SWITCH (1:55 to 2:20)
+SCREEN:
+  $ umwayi kill on
+  The kill switch is on. Every AI helper, job and workflow stops until 'umwayi kill off'.
+  $ umwayi kill status
+  on
+  The kill switch is on (.umwayi/KILL exists). Turn it off with 'umwayi kill off'.
+  [exit 3]
+  $ umwayi kill off
+  The kill switch is off.
+VOICE: "One file stops everything. If umwayi cannot read the switch, it treats it as on."
+MUSE (6 s card): STYLE. A wooden gate on a hill path, a red lamp lights, the gate swings shut.
+
+SCENE 5. THE BUDGET (2:20 to 2:45)
+SCREEN:
+  $ umwayi budget status
+  per_day: used 0 UU, reserved 0 UU, left 500 UU (limit 500 UU)
+  per_run: 100 UU reserved for every start; unknown_worst_case: 100 UU
+VOICE: "A unit is one US cent of list price. Before a helper starts, its cost is reserved. If the cost is unknown, umwayi counts the worst case."
+
+SCENE 6. ONE GATE, THREE TOOLS (2:45 to 3:15)
+SCREEN:
+  $ umwayi agent --help
+  (show the list: validate, list, check, run, chat, login)
+VOICE: "Claude Code, Kiro and OpenCode each have their own hooks. umwayi translates one answer for each. An agent it cannot gate does not start."
+SCREEN TEXT: Sign in is each tool's own. umwayi never sees a password.
+VOICE: "Sign in stays with the tool. Kiro offers Google, GitHub or Builder ID. Claude uses your claude.ai account. umwayi only checks that you are signed in."
+MUSE (8 s card): STYLE. A ford and a bridge both lead to one gate post, three travellers with different lanterns arrive.
+
+SCENE 7. GOALS: THE GUIDE PLANS, YOU APPROVE, A BUILDER WORKS ALONE (3:15 to 3:50)
+SCREEN:
+  $ umwayi goal --help
+  (show: start, show, approve, run, status, answer, merged, stop, report)
+VOICE: "A goal is split into small tasks. The guide plans. You approve the plan, the budget and the roles in a real terminal, where an agent cannot do it for you. Each task gets its own git worktree, one task, one pull request. The supervisor watches for stalls and stops the builder if you pull the switch."
+SCREEN TEXT: goal start, then approve (terminal only), then run, then merged.
+
+SCENE 8. PROOF: THE SCENARIO TESTS (3:50 to 4:20)
+SCREEN: run bash demo-tests.sh, cut to the last lines of each run:
+  Ran 41 tests in 6.2s   OK   (goal commands)
+  Ran 209 tests in 99s   OK   (the supervisor)
+  Ran 30 tests in 39s    OK   (the whole system)
+VOICE: "The goal commands, the supervisor and the whole system are tested with a fake agent. Planted faults prove each safety rule fails when it should. What I have not done is a real run with a real tool, and I say so."
+NOTE: speed the test footage up 8 times. The numbers above were measured on main at PR 96. After W9.10 merges, run it again and replace the counts. The W9.10 scenarios will add to the last line.
+
+SCENE 9. CLOSE (4:20 to 4:30)
+MUSE (10 s clip): STYLE. The shepherd walks away at dusk, the gate stays open to the right, a small lamp burns. SOUND: ambience only.
+VOICE: "umwayi-os. Your rules, before every helper acts. The code is public. Try it on something small."
+SCREEN TEXT: github.com/Miguel-Shinyenyi/umwayi-os   Built with Kiro for Kiroween
+
+------------------------------------------------------------
+WHAT TO SAY NO TO IN THE EDIT
+- Do not show the tool names as if all three were run for real. Show a caption: "Tested with fakes. Real runs are on my checklist."
+- Do not show the web page scene as a live product. It runs on sample data.
+- Do not read the exit codes aloud more than once.
+
+CHECKLIST BEFORE YOU RECORD
+- Run from the umwayi-os repo root, on a branch with the newest main.
+- bash demo.sh makes a scratch root and deletes nothing.
+- A real terminal at 1600 by 900 reads best on phones. Font size 22 or larger.

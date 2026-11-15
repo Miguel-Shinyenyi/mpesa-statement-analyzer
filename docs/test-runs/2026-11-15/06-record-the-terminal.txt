@@ -1,0 +1,37 @@
+RECORDING THE REAL TERMINAL
+Two scripts and one recording tape. All three are in this pack.
+
+FILES
+- demo.sh: the walkthrough (scenes 1 to 7). Makes a scratch root, runs every command for real, pauses between steps. FAST=1 skips the pauses.
+- demo-tests.sh: the scenario tests with pauses (scene 8). About 2.5 minutes at full speed.
+- demo.tape: a VHS recording of demo.sh.
+
+OPTION A: ONE COMMAND WITH VHS (recommended)
+1. Install VHS (needs ffmpeg and ttyd): brew install vhs   or   see github.com/charmbracelet/vhs
+2. From the umwayi-os repo root: vhs demo.tape
+3. You get umwayi-demo.mp4 and umwayi-demo.gif, 1600 by 900.
+4. For the tests: copy demo.tape to tests.tape, change "bash demo.sh" to "bash demo-tests.sh", Output names to umwayi-tests, and Sleep 170s. Run vhs tests.tape.
+
+OPTION B: SCREEN RECORDING
+1. Open a terminal at about 1600 by 900, font size 22 or more, dark theme.
+2. Start your screen recorder, then run bash demo.sh.
+3. Run bash demo-tests.sh and record that too.
+
+OPTION C: A TEXT RECORDING THAT STAYS SHARP
+1. asciinema rec demo.cast, then run bash demo.sh, then exit.
+2. Convert with agg demo.cast demo.gif or play it on the web with asciinema-player.
+
+THE SCENARIO TESTS, SHOWN VISUALLY
+- bash demo-tests.sh runs three real test files with verbose output: tests/goal/test_cli.py, tests/goal/test_goalrun.py and tests/test_whole_system.py. Each line is one scenario and ends in ok.
+- After W9.10 merges (whole-system scenarios and the mutation pass), its scenarios appear in tests/test_whole_system.py. Run it again before you record.
+- The mutation pass is the best thing to show. A planted fault turns one test red. If W9.10 adds a script for it, record that as the closing proof.
+- The tests print Python deprecation warnings on newer Pythons. demo-tests.sh hides them. They come from goallog.py (a datetime call that Python 3.12 and later mark for removal). I will put that on the checklist as a small fix.
+
+WHERE MUSE VIDEO FITS
+- Use it for the scene cards in file 05 (marked MUSE). Generate each as its own 6 to 10 second clip.
+- Do not ask it to render the terminal. Text in generated video is unreliable.
+- In your editor: card, real terminal clip, voice over, next card. Add the captions from file 05 as text overlays.
+
+BEFORE YOU PUBLISH
+- Check that no real path, token or private name shows on screen. demo.sh uses a scratch folder, but your prompt may show your username and folder. Set PS1='$ ' before recording.
+- The video says tested with fakes. Keep that caption.
