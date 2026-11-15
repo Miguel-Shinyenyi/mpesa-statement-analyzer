@@ -118,3 +118,68 @@ WHAT MIGHT HELP THE NEXT RUN (not done)
 - Put the rule changes of finding 6 in the repo, so a builder can write inside its worktree.
 - Fix or log the (context) refusal (finding 3), then run a new goal.
 - The scratch root is still at /private/tmp/umwayi-goal/root with the new rules, so a new goal can start from there.
+
+RETRY (2026-11-15 evening, umwayi-os 2c86df9)
+Where it ended: goal G-0005 task T-01 FAILED (outcome) after the builder exited 0. The builder wrote and committed both files, but the supervisor's scope check refused the result. The Kiro tester did not run. No rules, agents or umwayi-os files were changed. I ran no owner command.
+
+Setup of the retry
+- Same scratch root, same rules.yaml (63 rules), same agents.yaml, same budgets (plan 20 UU, task 200 UU, goal 250 UU). umwayi-os was pulled first: 2c86df9, three commits since 0c5125d, all the login wizard (PR 114), nothing in the goal flow.
+- Checks before the start: kill status off; agent check Gated for claude-guide, claude-builder and kiro-tester (Kiro passed on the first try, no 15 s timeout); budget 29 of 500 UU used; scratch repo clean at dc4d64e.
+- New goal text: "In this scratch repo, add hello.py with a function greet(name) that returns 'Hello, NAME!' and test_hello.py with two unittest tests for it. python3 -m unittest must pass. In every task use context [] and list only hello.py and test_hello.py under files."
+
+Each start and its result (3 starts allowed, 1 used)
+1. goal start (typed by Miguel): goal G-0005. Plan accepted on the first try. One task T-01, 20 min, context none, five checks, files hello.py, test_hello.py, and the two part files under docs-parts/ (added by the supervisor's rule). Plan run measured 4 UU. The (context) refusal did not happen this time, so finding 3 is still open: it is intermittent.
+2. goal approve G-0005 (typed by Miguel): the run that followed shows it was accepted. Builder claude-builder, tester kiro-tester, model sonnet, effort medium, task 200, goal 250. I did not see the approve output.
+3. goal run G-0005 (typed by Miguel): the report printed "State: failed", "T-01: failed (outcome)", "Spent: 11 of 200 UU", "Branch: (none), tip (none)", "The tester's verdicts: none".
+
+Task states in order (T-01 events): queued, running (15:25:03Z), failed with reason outcome (15:25:42Z). The builder ran 36 s, exit 0.
+
+Spend: plan 4 UU (measured). Builder 11 UU (measured; 9 requests; 12 reports accepted, 0 refused). Kiro tester 0 UU (never started). Unknown UU: none. Day total 44 UU of 500 (claude-guide 26, claude-builder 19 including the earlier run).
+
+Did the builder write files: yes. The branch umwayi/g-0005-t-01 holds one commit 01d434e "Add greet function and two unittest tests" with two files, hello.py (2 lines) and test_hello.py (15 lines). The gate answered Yes to two file writes (rule builder-write-in-worktree) and to four shell commands (builder-shell-5, 3, 4 and 1: unittest, git add, git commit, git status). Only the two packet files were written. No docs-parts folder exists in the worktree.
+
+Did the Kiro tester run: no. The scope check ends the task before the tester starts.
+
+The gate blocked the builder three times (exact logbook lines, rule ids and action type; the logbook does not store the command or path text):
+- "Rule builder-no-chain-1 gave No; action type: tool_bash". Rules matched: builder-shell-1, builder-shell-2, builder-shell-3, builder-shell-4, builder-shell-5, builder-no-chain-1, builder-no-chain-2, builder-no-chain-6. By my reading this was one long command that chained several of the allowed words with && ; and >.
+- "Rule builder-no-chain-6 gave No; action type: tool_bash". Rules matched: builder-shell-4, builder-no-chain-6. By my reading a git commit command that contained a > character.
+- "No rule gave Ask me first; action type: tool_bash". Rules matched: none. A shell command that contains none of the five allowed words (for example ls or cat). I do not know which.
+The builder recovered by sending shorter commands. The reading of what each command was is my guess from the matched rule ids. This is the case step 6 describes, but it was not what ended the task.
+
+Why the task failed (inferred from the code, not recorded)
+- The task record says only "reason outcome". The specific word is not written to the logbook or the event log (finding 14).
+- In goalrun.py, scope_check() runs in this order after the builder exits 0: a commit (passed, 01d434e), a clean work tree, only allowed paths, a status part that parses, a limits part. The worktree has an untracked __pycache__/ folder ("?? __pycache__/" in git status). By the code order the check stopped at "tree_not_clean".
+- Even with a clean tree, the next check would have stopped at "status_file_missing": the builder never wrote docs-parts/status-log/G-0005-T-01.md.
+- Cause 1 (my setup): the scratch repo's .gitignore listed only umwayi's own files, not __pycache__/. Running python3 -m unittest creates it. The builder prompt says "Leave the work tree clean", but the builder did not delete it.
+- Cause 2 (umwayi): the builder prompt describes the status file as "Your status file X has these lines" and never says "create this file". The builder did not create it.
+
+New findings for umwayi-os (continuing the numbering of the first record)
+Finding 14. The reason word of a failed task is not recorded.
+- Proof: T-01.json has reason outcome. The code has no_commit, tree_not_clean, file_outside_packet, protected_file_changed, status_file_missing, status_file_invalid, limits_file_invalid. None appears in the logbook or event log.
+- Proposal: put the word in the state entry, the event and the report. Owner decision: no.
+
+Finding 15. Running the tests in a worktree makes the tree "not clean".
+- Proof: untracked __pycache__/ after python3 -m unittest; a real project may have a .gitignore for it, a scratch repo does not.
+- Proposal: pass PYTHONDONTWRITEBYTECODE=1 to every builder and tester start, or ignore __pycache__ in the clean-tree check, or list the .gitignore lines in the first-goal docs (finding 2). Owner decision: yes if the environment of a start changes.
+
+Finding 16. The status part instruction is easy to read as information, not as a task.
+- Proof: builder_prompt uses _STATUS_FORMAT ("Your status file {status} has these lines, then a blank line and free text"). The builder wrote nothing there.
+- Proposal: reword to "Create the file {status} with exactly these lines". Same for the limits file ("only if you found a limit"). Owner decision: no.
+
+Finding 17. A blocked tool call leaves no trace of what was tried.
+- Proof: the three blocked lines above name the rule and the action type, never the command, so I can only guess what the builder wanted.
+- Proposal: log a short fixed word for the command (the first word, or the first two) with the block. Owner decision: yes, because it decides what may be logged.
+
+Logbook verify, as printed (run after the failure, since no task reached review): "ok: 119 entries, the format is valid and the hash matches the record" and "info: the hash chain is not started (umwayi logbook seal --chain --by NAME starts it)".
+
+What I did not verify
+- That the task would pass once __pycache__/ is ignored and a status part exists. No run got that far.
+- The Kiro tester, goal merged, and the guide's check on real agents.
+- What the three blocked commands were.
+- The hash chain (not started).
+- That the scope check stopped at tree_not_clean (a deduction from the code order).
+
+What would unblock the next run (not done, needs Miguel's word)
+- Add __pycache__/ to the scratch repo's .gitignore and commit it in the scratch repo (a setup change, not a rules or agents change).
+- The builder still needs to create the two part files. That depends on whether the builder follows the prompt, or on finding 16.
+- A new goal costs about 4 UU for the plan and about 11 UU for the builder.
