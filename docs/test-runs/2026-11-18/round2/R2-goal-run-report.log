@@ -1,0 +1,33 @@
+# Report of goal G-0002
+
+Goal (319 characters, the owner's text): In this scratch repo, add hello.py with a function greet(name) that returns 'Hello, NAME!' and test_hello.py with two unittest tests for it. python3 -m unittest must pass. Touch no other project file. Files under docs-parts/ are added by the supervisor and are allowed, so any check about changed files must allow them.
+
+State: waiting. Guide claude-guide, builder claude-builder, tester claude-tester.
+
+## T-01: in review (checked)
+
+- Goal: Add hello.py with greet(name) returning 'Hello, NAME!' and test_hello.py with two unittest tests for it, with no other project file touched.
+- Check 1: hello.py exists at the repo root and defines greet(name).
+- Check 2: greet('World') returns exactly 'Hello, World!'.
+- Check 3: test_hello.py exists at the repo root and contains exactly two unittest test methods that call greet.
+- Check 4: Running python3 -m unittest from the repo root exits 0 and reports 2 tests run, all passing.
+- Check 5: git status shows that the only new or changed files are hello.py, test_hello.py and files under docs-parts/.
+- Check 6: No existing tracked file is modified or deleted.
+- Runs: builder claude-builder (cap 100 UU), tester claude-tester (cap 100 UU), check claude-guide (cap 100 UU)
+- Minutes: 1
+- Spent: 31 of 200 UU
+- Branch: umwayi/g-0002-t-01, tip 85a32658c34f
+- Files changed: 3
+- The tester's verdicts: 1 pass, 2 pass, 3 pass, 4 pass, 5 pass, 6 pass
+- The guide's word: accept
+- Skipped log lines: 0
+
+## The goal
+
+- Spent: 37 UU, left 213 UU of 250 UU
+- Planning run: 6 UU of its budget of 20 UU
+- Needs you: nothing
+- Waiting for your merge: T-01 (branch umwayi/g-0002-t-01, tip 85a32658c34f)
+- Docs: current
+
+This is a draft for you. It holds no diff, no file content and no output of a helper.

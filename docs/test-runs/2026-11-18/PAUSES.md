@@ -9,3 +9,5 @@ PAUSES: where umwayi or an agent waited and what I answered as Miguel (scratch f
 8. Claude Code: no permission prompt reached me. The allow list file was not installed, but no command stopped.
 
 9. Rerun on 985b1b3 (as Miguel, with permission): typed the word "cooperative" for "enforce set cooperative --agent NAME --until 2026-11-27" for claude-guide, claude-builder and claude-tester in the scratch goal roots, and for claude-test, kiro-test and oc-free in the scratch demo roots (one line added to copies of the demo scripts). Reason: the permission was given in chat, the roots are scratch, the limit is 7 days. The real umwayi-os enforcement files were not touched.
+
+10. Round 2: typed the word "cooperative" three times in goal3 for the goal agents, and once for each of claude-test, oc-free and kiro-test through the pseudo terminal helper in the fixed demo scripts. Reason: permission given in chat, scratch roots, 7 days. Approved G-0002 with yes and y as Miguel (task budget 200, goal 250, plan 20). No permission prompt reached me. The OpenCode raw acp runs asked nothing (a read needs no permission).

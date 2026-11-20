@@ -102,3 +102,48 @@ New notes from the rerun:
 * goal start prints the line "enforcement: enforced" although all three agents were cooperative per agent. Annoys: it looks like the set did not work. Nice to have: print the mode per agent.
 * enforce set cooperative asks for a typed word and prints nothing about what it is about to change before the prompt. Nice to have. After the word it printed "One logbook entry was written." Clear.
 * Not verified in the rerun: a passing goal, a Kiro run, the OpenCode points b to h again (not repeated).
+
+ROUND 2 (2026-11-20 21:40 to 22:35 Nairobi), from the round 2 message of the guide. Files in round2/.
+Where it ran: scratch copies of umwayi-os 985b1b3 (/private/tmp/umwayi-demo3 for the patched tests and demo scripts). The umwayi-os repository and clone were not edited.
+
+R2.1 STRANGER BLOCKERS: PASS (with a patch that lives only in a scratch copy)
+* demo-tests.sh: "python" changed to "python3" (round2/demo-tests-python3.sh). Run with no python on the PATH: tests.goal.test_cli 49 OK (26 s), tests.goal.test_goalrun 213 OK (207 s), tests.test_whole_system 48 OK (196 s). Recording R2-tests.cast.
+* test_whole_system on macOS. Three test-only places read /proc and needed a change (round2/proc-fix-proposal.diff, 66 lines of diff):
+  1. tests/agents/support.py, alive(pid): reads /proc/PID/stat. Use ps -o stat= -p PID when /proc is missing.
+  2. tests/whole_system_support.py, wait_quiet(): lists /proc/*/cmdline. Use ps -axo pid=,command= when /proc is missing.
+  3. tests/agents/fake_agent.py line 121: the fake claude reads /proc/self/cmdline. Use [sys.executable] + sys.argv when /proc is missing.
+* The order of what I saw: with change 1 and 2 only, the two errors went away and 4 tests that were skipped began to run (skipped 24 to 20), and test_06_the_front_door failed because of place 3. With all three: 48 OK, 20 skipped.
+* Not patched, but also Linux only: /proc in product code (umwayi/agents.py line 1670, umwayi/logbook.py line 576, umwayi/goal.py lines 617 and 948) and in other tests (tests/test_scan_receiver.py, tests/serve/*, tests/adapters/test_opencode_plugin.py, tests/goal/wholesupport.py). The product code paths are described as Linux only in places. What they do on macOS is not verified. Annoys, and worth an owner decision.
+* Severity: blocks (the whole-system suite on a Mac), fixed only in the scratch copy.
+
+R2.2 TINY GOAL: PASS on the third plan, after one refusal
+* Goal text, second try: "...Touch no other project file. Files under docs-parts/ are added by the supervisor and are allowed, so any check about changed files must allow them."
+* Try 1 (goal text that named the part files and "the known-limits part file"): G-0001 "The plan was refused (protected)." logbook "First problem: protected". I did not note the exit code of that goal start. Spent 8 UU. My reading: naming the known-limits file pointed the guide at a protected path. Not proven. Annoys: the refusal gives no path.
+* Try 2: G-0002 plan check 5 became "git status shows that the only new or changed files are hello.py, test_hello.py and files under docs-parts/." and check 6 "No existing tracked file is modified or deleted."
+* goal approve typed as Miguel, then goal run: exit 0 after 79 s. T-01 "in review (checked)". Verdicts 1 pass, 2 pass, 3 pass, 4 pass, 5 pass, 6 pass. Spent 31 of 200 UU on the task, 37 of 250 UU on the goal. "Branch: umwayi/g-0002-t-01, tip 85a32658c34f". "Files changed: 3": hello.py, test_hello.py, docs-parts/status-log/G-0002-T-01.md. python3 -m unittest in the worktree: 2 tests OK. logbook verify "ok: 83 entries, the format is valid and the hash matches the record". I did not merge and did not run goal merged. Files: R2-goal-run-report.log, R2-goal-logbook.md.
+* The failed-task report was not needed: no failure in the final run. For the earlier failure, the report said "Branch: (none), tip (none)" and the worktree path was /private/tmp/umwayi-run/goal/root-worktrees/g-0001-t-01 with the commit bb8b677 (finding F1).
+* Result for F1: a plan worded for the part files passes. A goal text that tells the guide this is the workaround. The guide did not know on its own. The proposals (a) to (c) in F1 still stand.
+* Not verified: a goal merged, a second passing goal, a plan worded without my help.
+
+R2.3 DEMO SCRIPTS: DONE in copies (round2/demo-agent-*.sh)
+* demo-agent-common.sh: REPO="$(pwd -P)" and a coop NAME function that asks for the typed word and runs "umwayi enforce set cooperative --agent NAME --until DATE" for 7 days. Each of the three scripts calls coop right after allow.
+* The Kiro gate now passes (the unresolved path refusal is gone). Claude Code passed (measured 5 UU, 3 s). OpenCode passed (unknown 100 UU, 10 s). Recordings R2-claude.cast, R2-opencode.cast, R2-kiro.cast.
+* Recorded as asked: goal approve printed no question when driven by a terminal (it printed only "Approved goal G-000X: 1 tasks queued"). goal start and goal show print "enforcement: enforced" although all three agents were cooperative per agent. Both annoy. Proposal: print what is being approved before the question, and print the mode per agent.
+* Also: "goal show" for a refused goal prints only "Goal G-0001: refused." and no reason; "goal status" has it ("The plan was refused (protected)"). Nice to have.
+
+R2.4 OPENCODE: results (OpenCode 2.3.0, free route, no credentials)
+* Canary word: PASSED by what it proves. The canary is a file the plugin writes in a private folder (adapters/opencode/README.md step 5). It is not in the logbook or on the screen by design. Nothing is sent until the file holds the token, so the chat answering at all shows it was seen. In every chat run (several, in Parts C and Round 2) the line "Connected." came before any answer. Not seen directly: the token itself (it is secret).
+* Tool output in agent_message_chunk: PASSED (it does not appear). A raw acp run that read notes.txt: the updates were available_commands_update, tool_call (read, pending), tool_call_update (in_progress), tool_call_update (completed, with the file text in "content"), agent_message_chunk "green", usage_update, then stopReason end_turn. The tool's output travelled in tool_call_update, and the message chunk held only the model's reply. A model can still repeat tool text in its own reply.
+* --thinking: PASSED as documented, it prints "Thinking: ..." text before the reply. It does not set an effort.
+* --format json: PASSED, three JSON lines with types step_start, text, step_finish, exit 0.
+* model#variant: FAILED here, as a way to set effort. "opencode/big-pickle#high" and "#nonsense" both gave exit 1: "Error: Variant unavailable for opencode/big-pickle: high". So the suffix selects a variant the model defines, and this model has none. Whether other models offer effort variants was not tried.
+* So point h of the real check: no documented effort flag; --thinking only shows thinking; #variant works only where the model defines variants. Not confirmed as an effort control.
+
+R2.5 KIRO: stopped
+* kiro-cli whoami answered (signed in). The run through the fixed script: gate passed, then "Error: Kiro could not load the available models because this account does not have access to them. (code -32000): {"errorType":"ModelRegistryAccessDeniedError",...}". Exit 2, unknown 100 UU. Kiro has now failed on models three times: ModelRegistryUnavailableError on 027dff2, ModelRegistryAccessDeniedError twice on 985b1b3. Not retried. Needs the owner to look at the account.
+
+R2.6 BRANCHES ON ORIGIN
+* umwayi-os opencode-real-check-2026-11-18: head c46ec6d.
+* mpesa-statement-analyzer test-runs/2026-11-18: head 365f79d before this round; the new head is in the final report. main of that repo is b91c781 (Initial empty commit), unchanged.
+
+TASK 1 (hub): queue.md section M committed on branch queue/section-m-2026-11-20 at 0729760 and pushed. No pull request, no merge. The change was only the six public-safe rows. The git remote address of the hub has text before the @ sign (it looks like a user name or a token in an https address). I did not print it, and I did not change it. Miguel should check it, and rotate a token if one is in it. The push was made with the gh login Miguel-Shinyenyi through a temporary credential helper, not through the remote address.

@@ -1,0 +1,82 @@
+--- /tmp/umwayi-run/support.orig	2026-11-20 22:04:11
++++ tests/agents/support.py	2026-11-20 22:04:11
+@@ -465,9 +465,12 @@
+ 
+ 
+ def alive(pid: int) -> bool:
+-    """True if the process exists and is not a zombie."""
+-    try:
+-        with open(f"/proc/{pid}/stat", encoding="utf-8") as f:
+-            return f.read().rsplit(")", 1)[1].split()[0] != "Z"
+-    except (FileNotFoundError, ProcessLookupError, IndexError):
+-        return False
++    """True if the process exists and is not a zombie. /proc where it exists (Linux), else ps (macOS)."""
++    if os.path.isdir("/proc"):
++        try:
++            with open(f"/proc/{pid}/stat", encoding="utf-8") as f:
++                return f.read().rsplit(")", 1)[1].split()[0] != "Z"
++        except (FileNotFoundError, ProcessLookupError, IndexError):
++            return False
++    out = subprocess.run(["ps", "-o", "stat=", "-p", str(pid)], capture_output=True, text=True).stdout.strip()
++    return bool(out) and not out.startswith("Z")
+--- /tmp/umwayi-run/wss.orig	2026-11-20 22:04:11
++++ tests/whole_system_support.py	2026-11-20 22:04:11
+@@ -148,6 +148,24 @@
+                            "options": OPTIONS}}
+ 
+ 
++
++def _command_lines():
++    """(pid, command line as bytes) of every process: /proc on Linux, ps on macOS."""
++    if os.path.isdir("/proc"):
++        for name in os.listdir("/proc"):
++            if name.isdigit():
++                try:
++                    with open(f"/proc/{name}/cmdline", "rb") as f:
++                        yield int(name), f.read()
++                except OSError:
++                    continue
++        return
++    out = subprocess.run(["ps", "-axo", "pid=,command="], capture_output=True).stdout
++    for line in out.splitlines():
++        parts = line.strip().split(None, 1)
++        if len(parts) == 2 and parts[0].isdigit():
++            yield int(parts[0]), parts[1]
++
+ class World:
+     """The folder a day runs in, and every way the test touches it."""
+ 
+@@ -378,15 +396,8 @@
+         end = time.monotonic() + timeout
+         while time.monotonic() < end:
+             busy = False
+-            for name in os.listdir("/proc"):
+-                if not name.isdigit() or int(name) == os.getpid():
+-                    continue
+-                try:
+-                    with open(f"/proc/{name}/cmdline", "rb") as f:
+-                        cmd = f.read()
+-                except OSError:
+-                    continue
+-                if needle in cmd and alive(int(name)):
++            for pid, cmd in _command_lines():
++                if pid != os.getpid() and needle in cmd and alive(pid):
+                     busy = True
+                     break
+             if not busy and not logbook_lock_held(self.root):
+--- /tmp/umwayi-run/fake.orig	2026-11-20 22:06:57
++++ tests/agents/fake_agent.py	2026-11-20 22:06:58
+@@ -118,8 +118,11 @@
+            "ttyname": os.ttyname(0) if os.isatty(0) else None,
+            "foreground": os.tcgetpgrp(0) if os.isatty(0) else None,
+            "sigint_ignored": INHERITED_SIGINT_IGNORED}
+-with open("/proc/self/cmdline", "rb") as f:
+-    cmdline = f.read().decode("utf-8", "replace").split("\x00")
++if os.path.exists("/proc/self/cmdline"):
++    with open("/proc/self/cmdline", "rb") as f:
++        cmdline = f.read().decode("utf-8", "replace").split("\x00")
++else:
++    cmdline = [sys.executable] + sys.argv  # macOS: no /proc; the interpreter, the script, then its arguments
+ TELEMETRY_EXACT = ("CLAUDE_CODE_ENABLE_TELEMETRY", "BETA_TRACING_ENDPOINT", "CLAUDE_CODE_ENHANCED_TELEMETRY_BETA")
+ rec(argv=ARGS, cwd=os.getcwd(), started=True, pid=os.getpid(), pgid=os.getpgid(0), sid=os.getsid(0),
+     stdin=stdin_text, env_keys=sorted(os.environ), cmdline=cmdline, chat=CHAT,

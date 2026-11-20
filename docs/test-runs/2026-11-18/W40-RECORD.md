@@ -43,3 +43,7 @@ TINY GOAL G-0001 (builder claude-builder, tester claude-tester, guide claude-gui
 ENFORCE CHECK (umwayi 985b1b3, against the goal root)
 Output: "enforcement: enforced", then for each of claude-guide, claude-builder, claude-tester: environment, confinement, detect-after, untrusted-read refused (unavailable), network refused (network), "refused: not confined (unavailable). Allowed next: run `umwayi enforce set cooperative --agent NAME --until DATE` at your terminal, or wait for the build." Last line: "3 agent(s) checked. Nothing was started and nothing was written."
 So on 985b1b3 every agent run is refused until you run enforce set cooperative. I did not run it. 027dff2 has no enforce command.
+
+ROUND 2 ADDITIONS
+- Claude Code on 985b1b3 with the fixed script: measured 5 UU in 3 s. OpenCode chat: unknown 100 UU, 10 s. Kiro: ModelRegistryAccessDeniedError again, unknown 100 UU, not retried.
+- Tiny goal G-0002: T-01 in review (checked), 6 of 6 verdicts pass, 31 UU task, 37 UU goal, branch umwayi/g-0002-t-01 tip 85a32658c34f, logbook ok 83 entries. Not merged.
