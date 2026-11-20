@@ -7,3 +7,5 @@ PAUSES: where umwayi or an agent waited and what I answered as Miguel (scratch f
 6. Planted opencode.json in the scratch workdir. No prompt: "no: other config ... exists in the workdir" and "Refused ... cannot be gated" (exit 2). I removed the file afterwards.
 7. Kiro: nothing waited for me.
 8. Claude Code: no permission prompt reached me. The allow list file was not installed, but no command stopped.
+
+9. Rerun on 985b1b3 (as Miguel, with permission): typed the word "cooperative" for "enforce set cooperative --agent NAME --until 2026-11-27" for claude-guide, claude-builder and claude-tester in the scratch goal roots, and for claude-test, kiro-test and oc-free in the scratch demo roots (one line added to copies of the demo scripts). Reason: the permission was given in chat, the roots are scratch, the limit is 7 days. The real umwayi-os enforcement files were not touched.

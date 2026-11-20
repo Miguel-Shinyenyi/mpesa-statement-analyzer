@@ -77,3 +77,28 @@ Task 10.51 is NOT ticked. The owner ticks it.
 Not verified in Part C: the plugin canary line, a tool's output inside agent_message_chunk, a documented effort flag, the OpenCode Zen free tier limits.
 
 PUSHED BRANCHES: see the final report.
+
+FINDING F1 (for umwayi-os, to be taken from here): the plan's check 5 contradicts the part files
+- What: the guide's plan for goal G-0001 had check 5: "git status shows only hello.py and test_hello.py as new files and no other file changed". The supervisor adds docs-parts/status-log/G-0001-T-01.md to every packet "by right", and the plan itself listed it ("the last two by right"). The builder did what the packet allowed and committed the part file. The tester then failed check 5.
+- Proof: goal show G-0001 (Files line with the two "by right" files and check 5); builder commit bb8b677 in the scratch worktree: hello.py, test_hello.py, docs-parts/status-log/G-0001-T-01.md; tester verdicts "1 pass, 2 pass, 3 pass, 4 pass, 5 fail"; T-01 "running to failed (reason tests)", cause check_failed; spent 23 of 200 UU. python3 -m unittest in the worktree: 2 tests OK. Files: B-goal-run-report.log, B-goal-logbook.md.
+- Why it matters: a correct task fails and the owner pays the spend. A strict "only these files" check in a plan will fail on every goal, since the part files are always there.
+- Proposals (the owner decides): (a) tell the guide in its prompt that the two part files are expected and must not be named in a "no other file" check; (b) tell the tester that files "by right" are allowed; (c) have the supervisor drop or rewrite a check that says "only" and names a file set.
+- Second part of the same finding: the failed task's report says "Branch: (none), tip (none)" and "Files changed: not counted", but the builder's commit exists in the worktree. The owner cannot see where the work is. Proposal: print the worktree path and branch for a failed task.
+- Severity: blocks (a first goal cannot pass), annoys (the report).
+- Seen once, on one goal. Not verified: that it repeats on a second goal, or with a Kiro tester.
+
+RERUN ON 985b1b3, 2026-11-20 21:00 to 21:15 (as Miguel, with Miguel's permission to run enforce set cooperative in the scratch roots; files in rerun-985b1b3/)
+Setup: a second neutral copy at 985b1b3 (PR 155, enforce check). The agents were set to cooperative with "enforce set cooperative --agent NAME --until 2026-11-27" and the typed word, one agent at a time, in scratch roots only. The real umwayi-os rules and enforcement files were not touched.
+Part A on 985b1b3: PASS for the two goal suites, FAIL for the third.
+* tests.goal.test_cli: 49 OK, 28 s. tests.goal.test_goalrun: 213 OK, 216 s. Both passed on the first run, at 21:01, not just after midnight. This fits the date theory for the first failures on Nov 18, but it is not proven.
+* tests.test_whole_system: 48 run, 1 failure, 1 error, 24 skipped, 137 s. Same two causes: FileNotFoundError '/proc' and "[] != [43052]". The macOS failure is stable.
+Part B on 985b1b3 (demo scripts with one added enforce set line, named -coop; the originals refuse on 985b1b3 because the default is enforced):
+* Claude Code: PASS. "Budget: run d899a0980255515a settled, measured 5 UU (42190 micros)." 8 s. Logbook "ok: 11 entries".
+* Kiro: FAIL, a different error from the first time: "Error: Kiro could not load the available models because this account does not have access to them. (code -32000): {"errorType":"ModelRegistryAccessDeniedError",...}". Exit 2, unknown 100 UU. So the first error (ModelRegistryUnavailableError) and this one point to the account or its credits. Not retried again.
+* OpenCode chat: PASS. hello, end_turn, 10 s, unknown 100 UU.
+* Tiny goal, second goal on a fresh root: FAIL, the same way. The new plan had "Check 5: git status shows only hello.py and test_hello.py as new or changed files" and the same two "by right" part files. Verdicts 1 pass to 4 pass, 5 fail. Spent 23 of 200 UU on the task, 30 UU on the goal. "Branch: (none), tip (none)". So finding F1 repeats on a second goal and on 985b1b3. It is now seen twice.
+New notes from the rerun:
+* The demo scripts do not run on 985b1b3 as they are: the default is enforced and nothing in them runs enforce set. Blocks. Add the line, or a note at the top of each script.
+* goal start prints the line "enforcement: enforced" although all three agents were cooperative per agent. Annoys: it looks like the set did not work. Nice to have: print the mode per agent.
+* enforce set cooperative asks for a typed word and prints nothing about what it is about to change before the prompt. Nice to have. After the word it printed "One logbook entry was written." Clear.
+* Not verified in the rerun: a passing goal, a Kiro run, the OpenCode points b to h again (not repeated).
