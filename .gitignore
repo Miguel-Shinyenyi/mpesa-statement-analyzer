@@ -1,0 +1,6 @@
+# A real M-Pesa statement holds names, phone numbers and balances. It never goes in this repo.
+*.csv
+*.pdf
+statements/
+__pycache__/
+*.pyc
