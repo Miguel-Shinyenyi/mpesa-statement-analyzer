@@ -62,6 +62,8 @@ and exits 0. With a bad file it prints one line `error: ...` to standard error, 
 
 - 2026-11-25: spec and tests first, written by the builder; the code is built later through umwayi-os with Kiro doing real work in it (G-0054).
 
+- 2026-11-26: the code is built by Claude Code against these 17 tests (the owner's order, G-0094). All 17 pass on the local run. No Kiro work is claimed for it.
+
 ## Open questions
 
 - Which M-Pesa statement layouts exist besides this header? Recommendation: support this one now and add a layout only with a made-up sample of it.
